@@ -41,7 +41,7 @@ module load mpi/openmpi-1.10.4 hdf5
 
 ##mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin/athena -r /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_l/jet.00037.rst -i /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/athinput.ejetm  -d /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_l/inc_gz
 
-mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin/athena -r /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/jet.00047.rst mesh/refinement=adaptive  -d /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/refined_2 
+mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin/athena -r /gamma_home/ozamiel/athena/runs_magfld/B_method/output_files_pr_cor_n/jet.00047.rst -i /gamma_home/ozamiel/athena/runs_magfld/B_method/athinput.ejetm  -d /gamma_home/ozamiel/athena/runs_magfld/B_method/output_files_pr_cor_n/refined_2 
 
 ##mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin/athena -i /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/athinput.ejetm -d /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n
 

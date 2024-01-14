@@ -39,7 +39,7 @@ echo ------------------------------------------------------
 module purge
 module load mpi/openmpi-1.10.4 hdf5
 
-mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin2/athena -r /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/jet.00047.rst -i /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/athinput.ejetm  -d /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/refined_3
+mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena2/bin/athena -r /gamma_home/ozamiel/athena2/runs_magfld/B_method/output_files_pr_cor_n/jet.00047.rst -i /gamma_home/ozamiel/athena2/runs_magfld/B_method/athinput.ejetm  -d /gamma_home/ozamiel/athena2/runs_magfld/B_method/output_files_pr_cor_n/refined_3
 
 ##mpirun -mca btl_openib_allow_ib 1 /gamma_home/ozamiel/athena/bin/athena -r /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/jet.00047.rst mesh/refinement=adaptive mesh/numlevel=3 -d /gamma_home/ozamiel/athena/runs_srjet/runs_magfld/B_method/output_files_pr_cor_n/refined_3 
 
