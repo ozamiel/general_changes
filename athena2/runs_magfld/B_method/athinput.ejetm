@@ -49,13 +49,13 @@ ix3_bc     = user  # inner-X3 boundary flag
 ox3_bc     = outflow  # outer-X3 boundary flag
 
 refinement     = adaptive
-numlevel       = 3
+numlevel       = 2
 derefine_count    = 5
 
 <meshblock>
 nx1 = 16
-nx2 = 16
-nx3 = 32
+nx2 = 32
+nx3 = 16
 
 <hydro>
 gamma   = 1.3333333333333333333333     # gamma = C_p/C_v
@@ -84,7 +84,7 @@ bzjet = 0.0
 b0 = 0.4
 
 rjet = 5.0
-drjet = 0.5
+drjet = 0.25
 
 mang = 27 # angular number of the perturbation
-dang = 1e-2 # amplitude of the perturbation
+dang = 0.01 # amplitude of the perturbation

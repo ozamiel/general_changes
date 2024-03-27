@@ -48,14 +48,14 @@ x3max      = 200.0     # maximum value of X3
 ix3_bc     = user  # inner-X3 boundary flag
 ox3_bc     = outflow  # outer-X3 boundary flag
 
-refinement     = none
+refinement     = adaptive
 numlevel       = 2
 derefine_count    = 5
 
 <meshblock>
-nx1 = 64
-nx2 = 64
-nx3 = 64
+nx1 = 32
+nx2 = 32
+nx3 = 32
 
 <hydro>
 gamma   = 1.3333333333333333333333     # gamma = C_p/C_v
@@ -81,10 +81,10 @@ vzjet = 5.0
 bxjet = 0.0
 byjet = 0.0
 bzjet = 0.0
-b0 = 0.4
+b0 = 0.0 #0.4
 
 rjet = 5.0
-drjet = 0.1
+drjet = 0.25
 
 mang = 27 # angular number of the perturbation
-dang = 0 # amplitude of the perturbation
+dang = 0.01 # amplitude of the perturbation

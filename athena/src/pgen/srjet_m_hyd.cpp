@@ -229,8 +229,8 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
           rad *= pert ; 
         }
         else{
-              rad = std::sqrt(SQR(pco->x1v(i)-x1min) + SQR(pco->x2v(j)-x2_0));
-	      //phi = std::atan2(y,x)
+	  rad = std::sqrt(SQR(pco->x1v(i)-x1min) + SQR(pco->x2v(j)-x2_0));
+	  //phi = std::atan2(y,x)
 	}
 	Real step = SmoothStep(-(rad - r_jet)/dr_jet);
 	// Real divfactor = (rad/pert-x1min) / r_jet * openangle ;  // opening * (R/Rjet)
@@ -247,40 +247,48 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	//prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang ; // (vz_jet*divfactor-vx_amb) * step + vx_amb; // radial velocity
 	//prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang ;  // (vy_jet*rad-vy_amb) * step + vy_amb;
 	//prim(IPR,kl-k,j,i) = (p_jet-p_amb) * step + p_amb;
-	  
-		    // prim(IVX,kl-k,j,i) = (vz_jet*divfactor-vx_amb) * step + vx_amb; // radial velocity
-		    // prim(IVY,kl-k,j,i) = (vy_jet*rad-vy_amb) * step + vy_amb;
-		    // prim(IVZ,kl-k,j,i) = (vz_jet-vz_amb) * step + vz_amb;
-		    // prim(IPR,kl-k,j,i) = (p_jet-p_amb) * step + p_amb;
-    //Real R = pco->x1v(i);
-    Real smfnc = SmoothStep((r_jet - R)/dr_jet);
-
-    Real gamma_amb = sqrt(1.+vx_amb*vx_amb+vy_amb*vy_amb+vz_amb*vz_amb);
-    Real gamma_jet = sqrt(1.+vx_jet*vx_jet+vy_jet*vy_jet+vz_jet*vz_jet);
-
-    Real smfnc_c = SmoothStep((r_jet - x1min)/dr_jet);
-    Real b_cen = (b_0*x1min/a) * smfnc_c;
-    Real p_cen = p_amb - b_cen*b_cen/2; //Setting this because prim(IPR,kl-k,0,0) would bring not the pressure at the center but at the beginning of the domain
-    //prim(IPR,kl-k,j,i) = p_amb - b.x2f(kl-k,j,i)*b.x2f(kl-k,j,i)/(2.)
-    prim(IPR,kl-k,j,i) = (p_cen-p_amb) * step + p_amb;
-    Real press = prim(IPR,kl-k,j,i);
-    Real bern_jet = (1. + ((gad/(gad-1.))*p_cen/d_jet))*gamma_jet - b_cen*b_cen/(d_jet*vz_jet); //Setting the Bernoulli parameter and smoothning it
-    Real bern_amb = (1. + ((gad/(gad-1.))*p_amb/d_amb))*gamma_amb;
-    Real bern_sm = (bern_jet - bern_amb) * smfnc + bern_amb;
-          
-    Real atwd_jet = gamma_jet*gamma_jet*(d_jet + (gad/(gad-1.))*p_cen); //Setting the Atwood parameter and smoothning it
-    Real atwd_amb = gamma_amb*gamma_amb*(d_amb + (gad/(gad-1.))*p_amb);
-    Real atwd_sm = (atwd_jet - atwd_amb) * smfnc + atwd_amb;
-
-	//Real Psi = (atwd_sm - b.x2f(kl-k,j,i)*b.x2f(kl-k,j,i))/bern_sm; //Setting a parameter Psi to calculate gamma and rho from it
-    Real Psi = (atwd_sm)/bern_sm;
-
-    Real gamma = (Psi/(2.*(gad/(gad-1.))*press)) * (sqrt(1. + (4.*(gad/(gad-1.))*press*atwd_sm)/(Psi*Psi)) - 1.);
-    prim(IVZ,kl-k,j,i) = sqrt((gamma*gamma-1.)/(1. + rang * rang + phang * phang)); // gamma^2 - 1 = uz^2 + uy^2 + ux^2 
-    prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang; // rang = (rang_jet - rang_amb) * step + rang_amb , rang_i = vx_i/vz_i
-    prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang; // phang = (phang_jet - phang_amb) * step + phang_amb , phang_i = vy_i/vz_i
-    prim(IDN,kl-k,j,i) = Psi/gamma;
-    
+	
+	// prim(IVX,kl-k,j,i) = (vz_jet*divfactor-vx_amb) * step + vx_amb; // radial velocity
+	// prim(IVY,kl-k,j,i) = (vy_jet*rad-vy_amb) * step + vy_amb;
+	// prim(IVZ,kl-k,j,i) = (vz_jet-vz_amb) * step + vz_amb;
+	// prim(IPR,kl-k,j,i) = (p_jet-p_amb) * step + p_amb;
+	Real R = pco->x1v(i);
+	Real smfnc = SmoothStep((r_jet - R)/dr_jet);
+	Real B;
+	// Real p_0 = 1.*b_0;
+	if(R<a) {
+	  B = (b_0*R/a) * smfnc; //Setting a number to act like a magnetic field for calculation purposes
+	} else {
+	  B = (b_0*a/R) * smfnc;
+	}
+	
+	//b.x1f(kl-k,j,i) = 0.0;
+	//b.x3f(kl-k,j,i) = 0.0;
+	prim(IPR,kl-k,j,i) = p_amb - B*B/(2.); //Setting pressure so that total pressure is constant and is p_amb for pressure balance.
+	Real press = prim(IPR,kl-k,j,i);
+	
+	Real gamma_amb = sqrt(1.+vx_amb*vx_amb+vy_amb*vy_amb+vz_amb*vz_amb);
+	Real gamma_jet = sqrt(1.+vx_jet*vx_jet+vy_jet*vy_jet+vz_jet*vz_jet);
+	
+	Real smfnc_c = SmoothStep((r_jet - x1min)/dr_jet);
+	Real b_cen = (b_0*x1min/a) * smfnc_c;
+	Real p_cen = p_amb - b_cen*b_cen/2; //Setting this because prim(IPR,kl-k,0,0) would bring not the pressure at the center but at the beginning of the domain
+	Real bern_jet = (1. + ((gad/(gad-1.))*p_cen/d_jet))*gamma_jet - b_cen*b_cen/(d_jet*vz_jet); //Setting the Bernoulli parameter and smoothning it
+	Real bern_amb = (1. + ((gad/(gad-1.))*p_amb/d_amb))*gamma_amb;
+	Real bern_sm = (bern_jet - bern_amb) * smfnc + bern_amb;
+	
+	Real atwd_jet = gamma_jet*gamma_jet*(d_jet + (gad/(gad-1.))*p_cen); //Setting the Atwood parameter and smoothning it
+	Real atwd_amb = gamma_amb*gamma_amb*(d_amb + (gad/(gad-1.))*p_amb);
+	Real atwd_sm = (atwd_jet - atwd_amb) * smfnc + atwd_amb;
+	
+	Real Psi = (atwd_sm - B*B)/bern_sm; //Setting a parameter Psi to calculate gamma and rho from it
+	
+	Real gamma = (Psi/(2.*(gad/(gad-1.))*press)) * (sqrt(1. + (4.*(gad/(gad-1.))*press*atwd_sm)/(Psi*Psi)) - 1.);
+	prim(IVZ,kl-k,j,i) = sqrt((gamma*gamma-1.)/(1. + rang * rang + phang * phang)); // gamma^2 - 1 = uz^2 + uy^2 + ux^2 
+	prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang; // rang = (rang_jet - rang_amb) * step + rang_amb , rang_i = vx_i/vz_i
+	prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang; // phang = (phang_jet - phang_amb) * step + phang_amb , phang_i = vy_i/vz_i
+	prim(IDN,kl-k,j,i) = Psi/gamma;
+	
       }
     }
   }
