@@ -334,7 +334,7 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
     for (int k=1; k<=ngh; ++k) {
       for (int j=jl; j<=ju+1; ++j) {
 	for (int i=il; i<=iu; ++i) {
-	  Real R = pco->x1f(i);
+	  Real R = pco->x1v(i);
 	  Real smfnc = SmoothStep((R - r_jet)/dr_jet);
 	  b.x2f(kl-k,j,i) = (b_0*a*R/(a*a+R*R)) * smfnc; //Setting Bphi = R/a * Bz - force-free solution (total pressure-free in our case).
 	}
