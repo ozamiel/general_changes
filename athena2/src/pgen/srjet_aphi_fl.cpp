@@ -169,14 +169,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     }
   }
   
-  //for (int k=kl; k<=ku; ++k) {
-  //  for (int i=il; i<=iu; ++i) {
+  for (int k=kl; k<=ku; ++k) {
+    for (int i=il; i<=iu; ++i) {
       
-  //    Real r = pcoord->x1f(i);
-  //    Real z = pcoord->x3f(k);
-  //    std::cout << r << " " << z << " " << A2(r,z) << "\n";
-  //  }
-  //}
+      Real r = pcoord->x1f(i);
+      Real z = pcoord->x3f(k);
+      std::cout << r << " " << z << " " << A2(r,z) << "\n";
+    }
+  }
   
   // AthenaArray<Real> bb;
   
@@ -271,9 +271,11 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	Real atw = (atw_jet-atw_amb) * smfnc + atw_amb ;
 	Real hg = (hg_jet - hg_amb) * smfnc + hg_amb ;
 	Real rang = (rang_jet - rang_amb) * smfnc + rang_amb ;
+	rang *= (R - x1min) / r_jet ;
 	Real phang = (phang_jet - phang_amb) * smfnc + phang_amb ;
+	phang *= (R - x1min) / r_jet ;
 
-  //bern_sm *= (rad - x1min) / r_jet ;
+  
 	
 	
         
