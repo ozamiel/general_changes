@@ -391,7 +391,35 @@ namespace {
   
   Real A2(Real x1, Real x3) //calcualtes the value of Aphi based on location
   {
-    Real r0 = (4.*r_jet*x1 + x1min*x3)/(x3 + 4.*r_jet);
+Real r1,r2,diff,eps,r3,f_mul,r0;
+	  
+	  if (x1<1.5*r_jet && x1>x1min){
+
+	r1 = x1min;
+        r2 = x1;
+        diff = 1.;
+        eps = 1e-4;
+        while (diff > eps){ //finding r_0
+            r3 = r1 - f(r1,r,z)*(r2 - r1)/(f(r2,r,z) - f(r1,r,z));
+            diff = abs(r2 - r3);
+            f_mul = f(r1,r,z)*f(r3,r,z);
+            if (f_mul<=0.0){ 
+                r2 = r3;
+			}
+            else{
+                r1 = r3;
+			}
+		    }
+        r0 = r3;
+
+		  
+	  }
+        
+    else{
+
+	r0 = r;    
+    }
+        
     return A2_intg(r0)/x1;
   }
   
