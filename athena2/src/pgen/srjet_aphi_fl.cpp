@@ -42,7 +42,7 @@ namespace {
 // Make radius of jet and jet variables global so they can be accessed by BC functions
 // Real r_amb,
   Real d_amb, p_amb, vx_amb, vy_amb, vz_amb, bx_amb, by_amb, bz_amb;
-  Real r_jet, a, d_jet, p_jet, vx_jet, vy_jet, vz_jet, bx_jet, by_jet, bz_jet, b_0, dr_jet;
+  Real r_jet, a, d_jet, p_jet, vx_jet, vy_jet, vz_jet, bx_jet, by_jet, bz_jet, b_0, dr_jet, z_0;
   Real mang, dang;
   Real gad, gam_add, gm1, x1_0, x2_0, x1min;
   Real atw_jet, atw_amb, hg_amb, hg_jet, rang_jet, rang_amb, phang_jet, phang_amb, d;
@@ -51,6 +51,8 @@ namespace {
   Real A2(Real x1, Real x3);
   Real aintg1(Real x1);
   Real aintg2(Real x1);
+    Real rang(Real x1);
+    Real f(Real r_0,Real x1,Real x3);
     
 } // namespace
 
@@ -86,6 +88,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     by_jet = pin->GetReal("problem", "byjet");
     bz_jet = pin->GetReal("problem", "bzjet");
     b_0  = pin->GetReal("problem", "b0");
+    z_0 = pin->GetReal("problem", "z0");
   }
   r_jet = pin->GetReal("problem", "rjet");
   dr_jet = pin->GetReal("problem", "drjet");
@@ -264,8 +267,8 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	  rad = std::sqrt(SQR(pco->x1v(i)-x1min) + SQR(pco->x2v(j)-x2_0));
 	  //phi = std::atan2(y,x)
 	}
-  Real R = pco->x1v(i);
-  Real smfnc = SmoothStep((R - r_jet)/dr_jet);
+	Real R = pco->x1v(i);
+	Real smfnc = SmoothStep((R - r_jet)/dr_jet);
 	Real step = SmoothStep((rad - r_jet)/dr_jet);
 	// Real divfactor = (rad/pert-x1min) / r_jet * openangle ;  // opening * (R/Rjet)
 	Real atw = (atw_jet-atw_amb) * smfnc + atw_amb ;
@@ -274,8 +277,8 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	rang *= (R - x1min) / r_jet ;
 	Real phang = (phang_jet - phang_amb) * smfnc + phang_amb ;
 	phang *= (R - x1min) / r_jet ;
-
-  
+	
+	
 	
 	
         
@@ -291,7 +294,7 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	Real bern_jet = (1. + (gam_add*p_cen/d_jet))*gamma_jet + (1/(gamma_jet*d_jet))*(b_phi_cen*b_phi_cen); //Setting the Bernoulli parameter and smoothing it
 	Real bern_amb = (1. + (gam_add*p_amb/d_amb))*gamma_amb;
 	Real bern_sm = (bern_jet - bern_amb) * step + bern_amb;
-  
+	
 	
 	Real atwd_jet = gamma_jet*gamma_jet*(d_jet + gam_add*p_cen); //Setting the Atwood parameter and smoothing it
 	Real atwd_amb = gamma_amb*gamma_amb*(d_amb + gam_add*p_amb);
@@ -367,8 +370,8 @@ namespace {
   {
     // step function approximation
     
-      Real modx = std::max(std::min(x,1.),-1.);
-      
+    Real modx = std::max(std::min(x,1.),-1.);
+    
     return 1./2. - modx*(3.-modx*modx)/4.;
   }
   
@@ -384,43 +387,51 @@ namespace {
     } else {
       aphir = aintg2(r_jet + dr_jet) - aintg2(r_jet - dr_jet) + aintg1(r_jet - dr_jet) - aintg1(x1min);
     }
-      
+    
     
     return aphir;
   }
   
   Real A2(Real x1, Real x3) //calcualtes the value of Aphi based on location
   {
-Real r1,r2,diff,eps,r3,f_mul,r0;
-	  
-	  if (x1<1.5*r_jet && x1>x1min){
-
-	r1 = x1min;
-        r2 = x1;
-        diff = 1.;
-        eps = 1e-4;
-        while (diff > eps){ //finding r_0
-            r3 = r1 - f(r1,r,z)*(r2 - r1)/(f(r2,r,z) - f(r1,r,z));
-            diff = abs(r2 - r3);
-            f_mul = f(r1,r,z)*f(r3,r,z);
-            if (f_mul<=0.0){ 
-                r2 = r3;
-			}
-            else{
-                r1 = r3;
-			}
-		    }
-        r0 = r3;
-
-		  
-	  }
-        
-    else{
-
-	r0 = r;    
+    Real r1,r2,diff,eps,r3,f_mul,r0;
+    
+    if (x1<r_jet+5.*dr_jet && x1>x1min){
+      
+      r1 = x1min;
+      r2 = x1;
+      diff = 1.;
+      eps = 1e-4;
+      while (diff > eps){ //finding r_0
+	r3 = r1 - f(r1,x1,x3)*(r2 - r1)/(f(r2,x1,x3) - f(r1,x1,x3));
+	diff = abs(r2 - r3);
+	f_mul = f(r1,x1,x3)*f(r3,x1,x3);
+	if (f_mul<=0.0){ 
+	  r2 = r3;
+	}
+	else{
+	  r1 = r3;
+	}
+      }
+      r0 = r3;
+      
+      
     }
-        
+    
+    else{
+      
+      r0 = x1;    
+    }
+    
     return A2_intg(r0)/x1;
+  }
+  
+  Real rang(Real x1){
+    return ((rang_jet - rang_amb)*SmoothStep((x1-r_jet)/dr_jet) + rang_amb)*(x1-x1min)/r_jet;
+  }
+  
+  Real f(Real r_0,Real x1,Real x3){
+    return r_0 + rang(r_0)*z_0*(1-std::exp(-x3/z_0)) - x1;
   }
   
   Real aintg1(Real x1) //aphi for the first section
