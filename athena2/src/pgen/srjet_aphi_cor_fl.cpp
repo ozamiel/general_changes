@@ -258,23 +258,23 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	  Real z = pco->x3v(k)
     for (int i=il; i<=iu; ++i) {
 	    Real r = pco->x1v(i)
-	    Real R = r0_r_z(r,z); //calculating the radius for certain (r,z) according to field lines and setting all the quantities accordingly
+	    Real r_0 = r0_r_z(r,z); //calculating the radius for certain (r,z) according to field lines and setting all the quantities accordingly
        for (int j=jl; j<=ju; ++j){
 	prim(IPR,kl-k,j,i) = p_amb;
 	Real rad, pert;
-          rad = R
+          rad = r_0 ;
 	  pert = (1.+dang * cos(pco->x2v(j)*mang)) ; // perturbation   
           rad *= pert ; 
 	  //phi = std::atan2(y,x)
-	Real smfnc = SmoothStep((R - r_jet)/dr_jet);
+	Real smfnc = SmoothStep((r_0 - r_jet)/dr_jet);
 	Real step = SmoothStep((rad - r_jet)/dr_jet);
 	// Real divfactor = (rad/pert-x1min) / r_jet * openangle ;  // opening * (R/Rjet)
 	Real atw = (atw_jet-atw_amb) * smfnc + atw_amb ;
 	Real hg = (hg_jet - hg_amb) * smfnc + hg_amb ;
 	Real rang = (rang_jet - rang_amb) * smfnc + rang_amb ;
-	rang *= (R - x1min) / r_jet ;
+	rang *= (r_0 - x1min) / r_jet ;
 	Real phang = (phang_jet - phang_amb) * smfnc + phang_amb ;
-	phang *= (R - x1min) / r_jet ;
+	phang *= (r_0 - x1min) / r_jet ;
         
         Real p = p_amb;
 	
@@ -297,8 +297,10 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	Real Psi = (atwd_sm + Bphi_const*Bphi_const)/bern_sm; //Setting a parameter Psi to calculate gamma and rho from it
 	
 	Real gamma = (Psi/(2.*gam_add*p)) * (sqrt(1. + (4.*gam_add*p*atwd_sm)/(Psi*Psi)) - 1.);
-	prim(IVZ,kl-k,j,i) = sqrt((gamma*gamma-1.)/(1. + rang * rang + phang * phang)); // gamma^2 - 1 = uz^2 + uy^2 + ux^2 
-	prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang; // rang = (rang_jet - rang_amb) * step + rang_amb , rang_i = vx_i/vz_i
+	//prim(IVZ,kl-k,j,i) = sqrt((gamma*gamma-1.)/(1. + rang * rang + phang * phang)); // gamma^2 - 1 = uz^2 + uy^2 + ux^2 
+	//prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang; // rang = (rang_jet - rang_amb) * step + rang_amb , rang_i = vx_i/vz_i
+	prim(IVZ,kl-k,j,i) = sqrt((gamma*gamma - 1.)/(1. + rang*rang*std::exp((-2.*z/z_0)) + phang*phang));
+	prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i)*rang*std::exp((-z/z_0));
 	prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang; // phang = (phang_jet - phang_amb) * step + phang_amb , phang_i = vy_i/vz_i
 	prim(IDN,kl-k,j,i) = Psi/gamma;
 	
