@@ -255,9 +255,9 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
                 int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
   // set primitive variables in inlet ghost zones
   for (int k=1; k<=ngh; ++k) {
-	  Real z = pco->x3v(k)
+	  Real z = pco->x3v(k);
     for (int i=il; i<=iu; ++i) {
-	    Real r = pco->x1v(i)
+	    Real r = pco->x1v(i);
 	    Real r_0 = r0_r_z(r,z); //calculating the radius for certain (r,z) according to field lines and setting all the quantities accordingly
        for (int j=jl; j<=ju; ++j){
 	prim(IPR,kl-k,j,i) = p_amb;
