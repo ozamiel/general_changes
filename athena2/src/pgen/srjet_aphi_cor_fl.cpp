@@ -47,12 +47,13 @@ namespace {
   Real gad, gam_add, gm1, x1_0, x2_0, x1min;
   Real atw_jet, atw_amb, hg_amb, hg_jet, rang_jet, rang_amb, phang_jet, phang_amb, d;
   Real SmoothStep(Real x);
-  Real A2_intg(Real x1);
+  Real flux_intg(Real x1);
   Real A2(Real x1, Real x3);
-  Real aintg1(Real x1);
-  Real aintg2(Real x1);
+  Real fintg1(Real x1);
+  Real fintg2(Real x1);
     Real rang(Real x1);
     Real f(Real r_0,Real x1,Real x3);
+Real r0_r_z(Real x1,Real x3);
     
 } // namespace
 
@@ -254,20 +255,17 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
                 int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
   // set primitive variables in inlet ghost zones
   for (int k=1; k<=ngh; ++k) {
-    for (int j=jl; j<=ju; ++j) {
-      for (int i=il; i<=iu; ++i) {
-	Real rad, pert;
+	  Real z = pco->x3v(k)
+    for (int i=il; i<=iu; ++i) {
+	    Real r = pco->x1v(i)
+	    Real R = r0_r_z(r,z); //calculating the radius for certain (r,z) according to field lines and setting all the quantities accordingly
+       for (int j=jl; j<=ju; ++j){
 	prim(IPR,kl-k,j,i) = p_amb;
-        if (std::strcmp(COORDINATE_SYSTEM, "cylindrical") == 0) {
-          rad = pco->x1v(i);
+	Real rad, pert;
+          rad = R
 	  pert = (1.+dang * cos(pco->x2v(j)*mang)) ; // perturbation   
           rad *= pert ; 
-        }
-        else{
-	  rad = std::sqrt(SQR(pco->x1v(i)-x1min) + SQR(pco->x2v(j)-x2_0));
 	  //phi = std::atan2(y,x)
-	}
-	Real R = pco->x1v(i);
 	Real smfnc = SmoothStep((R - r_jet)/dr_jet);
 	Real step = SmoothStep((rad - r_jet)/dr_jet);
 	// Real divfactor = (rad/pert-x1min) / r_jet * openangle ;  // opening * (R/Rjet)
@@ -277,12 +275,8 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	rang *= (R - x1min) / r_jet ;
 	Real phang = (phang_jet - phang_amb) * smfnc + phang_amb ;
 	phang *= (R - x1min) / r_jet ;
-	
-	
-	
-	
         
-        Real p = prim(IPR,kl-k,j,i);
+        Real p = p_amb;
 	
 	Real gamma_amb = sqrt(1.+vx_amb*vx_amb+vy_amb*vy_amb+vz_amb*vz_amb);
 	Real gamma_jet = sqrt(1.+vx_jet*vx_jet+vy_jet*vy_jet+vz_jet*vz_jet);
@@ -307,6 +301,7 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i) * rang; // rang = (rang_jet - rang_amb) * step + rang_amb , rang_i = vx_i/vz_i
 	prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang; // phang = (phang_jet - phang_amb) * step + phang_amb , phang_i = vy_i/vz_i
 	prim(IDN,kl-k,j,i) = Psi/gamma;
+	
 	
 	
       }
@@ -375,17 +370,17 @@ namespace {
     return 1./2. - modx*(3.-modx*modx)/4.;
   }
   
-  Real A2_intg(Real x1)
+  Real flux_intg(Real x1)
   {
     // an analytic function of the vector potential Aphi divided into 3 section: rmin < r < r_jet - dr_jet, r_jet - dr_jet < r < r_jet + dr_jet, r > r_jet + dr_jet
     Real aphir;
     if(x1<r_jet - dr_jet){
       
-      aphir = aintg1(x1) - aintg1(x1min);
+      aphir = fintg1(x1) - fintg1(x1min);
     } else if(x1>=r_jet - dr_jet && x1<r_jet + dr_jet){
-      aphir = aintg2(x1) - aintg2(r_jet - dr_jet) + aintg1(r_jet - dr_jet) - aintg1(x1min);
+      aphir = fintg2(x1) - fintg2(r_jet - dr_jet) + fintg1(r_jet - dr_jet) - fintg1(x1min);
     } else {
-      aphir = aintg2(r_jet + dr_jet) - aintg2(r_jet - dr_jet) + aintg1(r_jet - dr_jet) - aintg1(x1min);
+      aphir = fintg2(r_jet + dr_jet) - fintg2(r_jet - dr_jet) + fintg1(r_jet - dr_jet) - fintg1(x1min);
     }
     
     
@@ -394,7 +389,20 @@ namespace {
   
   Real A2(Real x1, Real x3) //calcualtes the value of Aphi based on location
   {
-    Real r1,r2,diff,eps,r3,f_mul,r0;
+    //Real z_m = x3 - dz/2.;
+    Real r0 = r0_r_z(Real x1,Real x3);
+    return flux_intg(r0)/x1;
+  }
+
+
+Real VZ_RHO(Real R){
+
+
+	return std::tuple(VZ, rho);
+}
+
+Real r0_r_z(Real x1,Real x3){
+Real r1,r2,diff,eps,r3,f_mul,r0;
     
     if (x1<r_jet+5.*dr_jet && x1>x1min){
       
@@ -422,9 +430,8 @@ namespace {
       
       r0 = x1;    
     }
-    
-    return A2_intg(r0)/x1;
-  }
+return r0;	
+}
   
   Real rang(Real x1){
     return ((rang_jet - rang_amb)*SmoothStep((x1-r_jet)/dr_jet) + rang_amb)*(x1-x1min)/r_jet;
@@ -434,12 +441,12 @@ namespace {
     return r_0 + rang(r_0)*z_0*(1-std::exp(-x3/z_0)) - x1;
   }
   
-  Real aintg1(Real x1) //aphi for the first section
+  Real fintg1(Real x1) //aphi for the first section
   {
     return b_0*((a*a)/2.)*log(a*a + x1*x1);
   }
   
-  Real aintg2(Real x1) //aphi for the second section
+  Real fintg2(Real x1) //aphi for the second section
   {
     return b_0*((d*a*a)/6.)*(x1*(-6.*a*a - 18.*dr_jet*dr_jet + 18.*r_jet*r_jet - 9.*r_jet*x1 + 2.*x1*x1) + 6.*a*(a*a + 3.*dr_jet*dr_jet - 3.*r_jet*r_jet)*atan(x1/a) + (9.*r_jet*a*a + 6*dr_jet*dr_jet*dr_jet + 9.*r_jet*dr_jet*dr_jet - 3.*r_jet*r_jet*r_jet)*log(a*a + x1*x1));
   }
