@@ -395,12 +395,6 @@ namespace {
   }
 
 
-Real VZ_RHO(Real R){
-
-
-	return std::tuple(VZ, rho);
-}
-
 Real r0_r_z(Real x1,Real x3){
 Real r1,r2,diff,eps,r3,f_mul,r0;
     
