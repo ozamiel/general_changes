@@ -306,10 +306,13 @@ void JetInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim, FaceF
 	prim(IVX,kl-k,j,i) = prim(IVZ,kl-k,j,i)*rang(r_0)*std::exp((-z/z_0));
 	prim(IVY,kl-k,j,i) = prim(IVZ,kl-k,j,i) * phang; // phang = (phang_jet - phang_amb) * step + phang_amb , phang_i = vy_i/vz_i
 	Real rho_0 = Psi/gamma;
+    if (r<=r_jet + dr_jet && r>x1min){
     Real dr = pco->x1f(i+1) - pco->x1f(i);
-    Real dr_0 = r0_r_z(pco->x1f(i+1),z) - r0_r_z(pco->x1f(i),z);
+    Real dr_0 = r0_r_z(pco->x1f(i+1),z) - r0_r_z(pco->x1f(i),z);        
     prim(IDN,kl-k,j,i) = rho_0*(r_0*dr_0)/(r*dr);
-	
+    } else {
+    prim(IDN,kl-k,j,i) = rho_0;
+    }
 	
 	
       }
